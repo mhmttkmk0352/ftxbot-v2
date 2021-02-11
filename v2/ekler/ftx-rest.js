@@ -68,6 +68,27 @@ const output = {
 
         return pr;
     },
+    stop: async function(alinan_coin_adedi, kactan){
+        let pr = new Promise((resolve, reject) => {
+                ftx.request({
+                    method: 'POST',
+                    path: '/conditional_orders',
+                    data: {
+                        "market": process.env.coin_name,
+                        "side": "sell",
+                        "triggerPrice": kactan,
+                        "size": alinan_coin_adedi,
+                        "type": "stop",
+                        "reduceOnly": true,
+                      }
+                }).then(r=>{
+                    resolve(r);
+                });
+        });
+
+        return pr;
+    },
+
     get_process: async function( process_id ){
         let pr = new Promise((resolve, reject) => {
                 ftx.request({

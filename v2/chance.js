@@ -17,18 +17,22 @@ while_process_false = () => {
             data["peak_point"] = price+((price/100)*parseFloat(process.env.percent));
             console.log( data );
             ftx_rest.buy(process.env.initial_price, data["peak_point"]).then(bought => {
-                data["process_id"] = bought.id;
-                ftx_rest.get_process(data["process_id"]).then(get_process => {
-                    data["process_size"] = get_process.size;
-                    data["process_price"] = get_process.price;
-                    data["process_top_price"] = data["peak_point"];
-                    
-                    ftx_rest.sell( data["process_size"], data["process_top_price"] )
-                    .then(sell=>{
-                        console.log( {sell} );
-                    })
-                    
-                });
+                setTimeout(() => {
+                    data["process_id"] = bought.id;
+                    ftx_rest.get_process(data["process_id"]).then(get_process => {
+                        data["process_size"] = get_process.size;
+                        data["process_price"] = get_process.price;
+                        data["process_top_price"] = get_process.price+((get_process.price/100)*(process.env.percent));
+                        data["process_bottom_price"] = get_process.price-((get_process.price/100)*(process.env.percent));
+                        
+                        ftx_rest.sell( data["process_size"], data["process_top_price"] ).then(sell=>{
+                            ftx_rest.stop( data["process_size"], data["process_bottom_price"] ).then(stop=>{
+                                console.log( {stop} );
+                            });
+                        });
+                        
+                    });
+                },5000);
             });
         }
 
