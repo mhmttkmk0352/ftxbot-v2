@@ -1,6 +1,6 @@
 require("dotenv").config();
 const ftx_rest= require("./ekler/ftx-rest");
-
+const mail = require("./ekler/mail");
 
 
 while_process_true = () => {
@@ -21,29 +21,26 @@ while_process_false = () => {
                     data["process_id"] = bought.id;
                     ftx_rest.get_process(data["process_id"]).then(get_process => {
                         data["process_size"] = get_process.size;
-                        data["process_price"] = get_process.price;
-                        data["process_top_price"] = get_process.price+((get_process.price/100)*(process.env.percent));
-                        data["process_bottom_price"] = get_process.price-((get_process.price/100)*(process.env.percent));
-                        
+                        data["process_price"] = get_process.avgFillPrice;
+                        data["process_top_price"] = get_process.avgFillPrice+((get_process.avgFillPrice/100)*(process.env.percent));
+                        data["process_bottom_price"] = get_process.avgFillPrice-((get_process.avgFillPrice/100)*(process.env.percent));
+                                                
                         ftx_rest.sell( data["process_size"], data["process_top_price"] ).then(sell=>{
                             ftx_rest.stop( data["process_size"], data["process_bottom_price"] ).then(stop=>{
                                 console.log( {stop} );
                             });
-                        });
-                        
+                        });               
                     });
                 },5000);
             });
         }
-
     })
-    
-
 }
 
 
 
 App = () => {   
+    console.log("APP Started ..");
     var timer = setTimeout(() => {
         ftx_rest.any_proces_status().then( process_status => {
             process.env.process_status = process_status;
@@ -56,4 +53,21 @@ App = () => {
 }
 
 
+process_status_query = () => {
+    timer = setInterval(() => {
+        ftx_rest.any_proces_status().then(process_status => {
+            if ( process_status == 0 ) {
+                clearInterval( timer );
+                ftx_rest.bakiye_getir(bakiye => {
+                    mail.gonder( bakiye );
+                });
+                
+            }
+        });
+    }, process.env.process_status_query_time);
+}
+
+
+
 App();
+process_status_query();
