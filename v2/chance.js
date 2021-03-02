@@ -1,5 +1,4 @@
 require("dotenv").config();
-const { clearScreenDown } = require("readline");
 const ftx_rest= require("./ekler/ftx-rest");
 const mail = require("./ekler/mail");
 
@@ -14,10 +13,10 @@ while_process_false = () => {
 
     ftx_rest.get_price().then( price => {
         data["price"] = price;
-        if ( process.argv[2] == "LONG" ){
+        if ( process.env.process_type == "LONG" ){
             data["peak_point"] = price+((price/100)*parseFloat(process.env.percent));
             console.log( data );
-            ftx_rest.buy(process.env.initial_price, data["peak_point"].toFixed(6), "buy", false).then(bought => {
+            ftx_rest.buy(process.env.initial_price, data["peak_point"]).then(bought => {
                 setTimeout(() => {
                     data["process_id"] = bought.id;
                     ftx_rest.get_process(data["process_id"]).then(get_process => {
@@ -26,8 +25,8 @@ while_process_false = () => {
                         data["process_top_price"] = get_process.avgFillPrice+((get_process.avgFillPrice/100)*(process.env.percent));
                         data["process_bottom_price"] = get_process.avgFillPrice-((get_process.avgFillPrice/100)*(process.env.percent));
                                                 
-                        ftx_rest.sell( data["process_size"], data["process_top_price"].toFixed(6), "sell", true ).then(sell=>{
-                            ftx_rest.stop( data["process_size"], data["process_bottom_price"].toFixed(6), "sell", true ).then(stop=>{
+                        ftx_rest.sell( data["process_size"], data["process_top_price"] ).then(sell=>{
+                            ftx_rest.stop( data["process_size"], data["process_bottom_price"] ).then(stop=>{
                                 console.log( {stop} );
                             });
                         });               
@@ -35,37 +34,6 @@ while_process_false = () => {
                 },5000);
             });
         }
-        else if (  process.argv[2] == "SHORT" ){
-            console.log("Short pozisyon açılıyor.. ");
-            data["peak_point"] = price-((price/100)*parseFloat(process.env.percent));
-            console.log( {peak_point: data["peak_point"] } );
-            
-            ftx_rest.sell(process.env.initial_price, data["peak_point"].toFixed(6), "sell", false).then(selled => {
-                
-                setTimeout(() => {
-                    data["process_id"] = selled.result.id;
-                    console.log( {selled} );
-                        data["process_size"] = selled.result.size;
-                        data["process_price"] = data["price"];
-                        data["process_top_price"] = data["process_price"]+((data["process_price"]/100)*(process.env.percent));
-                        data["process_bottom_price"] = data["process_price"]-((data["process_price"]/100)*(process.env.percent));
-
-                        console.log( {data} );
-                                 
-                        
-                        ftx_rest.buy( data["process_size"], data["process_bottom_price"].toFixed(6), "buy", true ).then(sell=>{
-                            console.log("Short buy:");
-                            ftx_rest.stop( data["process_size"], data["process_top_price"].toFixed(6), "buy", true ).then(stop=>{
-                                console.log("Short buy:");
-                                console.log( {stop} );
-                            });
-                        });
-                                     
-                },5000);
-                
-                
-            });
-        } 
     })
 }
 
