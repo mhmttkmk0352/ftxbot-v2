@@ -1,10 +1,11 @@
 const FTXRest = require('./');
 
 const ftx = new FTXRest({
-  key: '6JJZ3CgzHnu4dfAKfzkrlxK9jtHPrta5gbHhWMNX',
-  secret: 'aO1HFNmokHZ9_X7HoEGXX0ogqlX32DlbVCmk4CI6'
+  key: 'FnUdDG4lf4F9VapY7fHrEjfoadAwSrB7eLYvgV9H',
+  secret: 'K5iXNXkN4Dhs_uETv1DVQgANc50Oq92a4ZPShmj_',
+  subaccount:"Yedek"
 });
-
+__dirname
 
 const output = {
     dolar_getir: function(kac_dolarlik, kactan){
@@ -21,19 +22,19 @@ const output = {
         });
         return pr;
     },
-    buy: async function( kac_dolarlik, kactan){
+    buy: async function( kac_dolarlik, kactan, process_type, reduceType){
         let pr = new Promise((resolve, reject) => {
 
                 ftx.request({
                     method: 'POST',
                     path: '/orders',
                     data: {
-                        "market": process.env.coin_name,
-                        "side": "buy",
+                        "market": process.argv[3],
+                        "side": process_type,
                         "price": kactan,
                         "type": "limit",
                         "size": this.dolar_getir(kac_dolarlik, kactan),
-                        "reduceOnly": false,
+                        "reduceOnly": reduceType,
                         "ioc": false,
                         "postOnly": false,
                         "clientId": null
@@ -45,18 +46,18 @@ const output = {
 
         return pr;
     },
-    sell: async function(alinan_coin_adedi, kactan){
+    sell: async function(alinan_coin_adedi, kactan, process_type, reduceType){
         let pr = new Promise((resolve, reject) => {
                 ftx.request({
                     method: 'POST',
                     path: '/orders',
                     data: {
-                        "market": process.env.coin_name,
-                        "side": "sell",
+                        "market": process.argv[3],
+                        "side": process_type,
                         "price": kactan,
                         "type": "limit",
                         "size": alinan_coin_adedi,
-                        "reduceOnly": true,
+                        "reduceOnly": reduceType,
                         "ioc": false,
                         "postOnly": false,
                         "clientId": null
@@ -68,18 +69,18 @@ const output = {
 
         return pr;
     },
-    stop: async function(alinan_coin_adedi, kactan){
+    stop: async function(alinan_coin_adedi, kactan, process_type, reduceType){
         let pr = new Promise((resolve, reject) => {
                 ftx.request({
                     method: 'POST',
                     path: '/conditional_orders',
                     data: {
-                        "market": process.env.coin_name,
-                        "side": "sell",
+                        "market": process.argv[3],
+                        "side": process_type,
                         "triggerPrice": kactan,
                         "size": alinan_coin_adedi,
                         "type": "stop",
-                        "reduceOnly": true,
+                        "reduceOnly": reduceType,
                       }
                 }).then(r=>{
                     resolve(r);
@@ -104,7 +105,7 @@ const output = {
         let pr = new Promise((resolve, reject) => {
                 ftx.request({
                     method: 'GET',
-                    path: '/orders?market='+process.env.coin_name
+                    path: '/orders?market='+process.argv[3]
                 }).then(r=>{
                     if ( r.result.length > 0 ){
                         resolve(1);
@@ -120,7 +121,7 @@ const output = {
         let pr = new Promise((resolve, reject) => {
                 ftx.request({
                     method: 'GET',
-                    path: '/markets/'+process.env.coin_name
+                    path: '/markets/'+process.argv[3]
                 }).then(r=>{
                    resolve( r.result.price );
                 });
