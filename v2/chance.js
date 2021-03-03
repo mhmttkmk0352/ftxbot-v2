@@ -1,7 +1,15 @@
 require("dotenv").config();
-const { clearScreenDown } = require("readline");
 const ftx_rest= require("./ekler/ftx-rest");
 const mail = require("./ekler/mail");
+
+let info = {
+    my_balance: 0,
+    win_status: -1,
+    type: "",
+    coin: "",
+    percent: 3,
+    dolar: 5
+}
 
 
 while_process_true = () => {
@@ -71,6 +79,7 @@ while_process_false = () => {
 
 
 
+/*
 App = () => {   
     console.log("APP Started ..");
     var timer = setTimeout(() => {
@@ -83,25 +92,78 @@ App = () => {
         })  
     }, process.env.process_control_time);
 }
+*/
+
+
+
+process_control = () => {
+    ftx_rest.any_proces_status().then(process_status => {
+        if ( process_status == 0 ) {
+            /*
+            clearInterval( timer );
+            ftx_rest.bakiye_getir(bakiye => {
+                mail.gonder( bakiye );
+            });
+            */
+           //while_process_false();
+            ftx_rest.bakiye_getir().then( current_balance=> {
+                if ( current_balance == info.my_balance ){
+                    console.log("Equal");
+                    info.type = process.argv[2];
+                    info.coin = process.argv[3];
+                    info.percent = process.argv[4];
+                    info.dolar = process.argv[5];
+                    console.log( info );
+                    while_process_false();
+                }
+                else if (current_balance > info.my_balance){
+                    console.log("Win");
+                    console.log({
+                        current_balance:current_balance,
+                        my_balance:info.my_balance
+                    });
+                    while_process_false();
+                }
+                else if (current_balance < info.my_balance){
+                    console.log("Loss");
+                    console.log({
+                        current_balance:current_balance,
+                        my_balance:info.my_balance
+                    });
+                }
+            });
+        }
+        else{
+            console.log("There is existing transaction");
+        }
+    });
+}
 
 
 process_status_query = () => {
+    process_control();
     timer = setInterval(() => {
-        ftx_rest.any_proces_status().then(process_status => {
-            if ( process_status == 0 ) {
-                clearInterval( timer );
-                ftx_rest.bakiye_getir(bakiye => {
-                    mail.gonder( bakiye );
-                });
-            }
-        });
+        process_control();
     }, process.env.process_status_query_time);
 }
 
 
-console.log("Kullanım:\nnode chance.js LONG BTC-PERP 3(yüzde kaç) 5(Kaç dolarlık)\n");
 
-setTimeout(() => {
-    App();
-    process_status_query();
-}, 4000);
+
+startApp = () => {
+    if ( !process.argv[5]) {
+        console.log("Kullanım:\nnode chance.js LONG BTC-PERP 3(yüzde kaç) 5(Kaç dolarlık)\n");
+        return false;
+    }
+    else{
+        ftx_rest.bakiye_getir().then(current_balance => {
+            info.my_balance = current_balance;
+            process_status_query();
+        });
+    }
+
+
+}
+
+
+startApp();
