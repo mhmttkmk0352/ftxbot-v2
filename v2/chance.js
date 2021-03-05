@@ -25,7 +25,7 @@ while_process_false = () => {
         if ( process.argv[2] == "LONG" ){
             data["peak_point"] = price+((price/100)*parseFloat(process.argv[4]));
             console.log( data );
-            ftx_rest.buy(process.argv[5], data["peak_point"].toFixed(6), "buy", false).then(bought => {
+            ftx_rest.buy( process.argv[5], data["peak_point"].toFixed(6), "buy", false).then(bought => {
                 setTimeout(() => {
                     data["process_id"] = bought.id;
                     ftx_rest.get_process(data["process_id"]).then(get_process => {
@@ -48,7 +48,10 @@ while_process_false = () => {
             data["peak_point"] = price-((price/100)*parseFloat(process.argv[4]));
             console.log( {peak_point: data["peak_point"] } );
             
-            ftx_rest.sell(process.argv[5], data["peak_point"].toFixed(6), "sell", false).then(selled => {
+
+            
+            let alinan_coin_adedi = ftx_rest.dolar_getir( info.dolar, data["peak_point"].toFixed(6));
+            ftx_rest.short_sell(process.argv[5], data["peak_point"].toFixed(6), "sell", false).then(selled => {
                 
                 setTimeout(() => {
                     data["process_id"] = selled.result.id;
@@ -73,39 +76,16 @@ while_process_false = () => {
                 
                 
             });
+            
         } 
     })
 }
 
 
-
-/*
-App = () => {   
-    console.log("APP Started ..");
-    var timer = setTimeout(() => {
-        ftx_rest.any_proces_status().then( process_status => {
-            process.env.process_status = process_status;
-            if ( process.env.process_status == 0 ){
-                // if not the process. So we can go activity
-                while_process_false();
-            }
-        })  
-    }, process.env.process_control_time);
-}
-*/
-
-
-
 process_control = () => {
     ftx_rest.any_proces_status().then(process_status => {
         if ( process_status == 0 ) {
-            /*
-            clearInterval( timer );
-            ftx_rest.bakiye_getir(bakiye => {
-                mail.gonder( bakiye );
-            });
-            */
-           //while_process_false();
+
             ftx_rest.bakiye_getir().then( current_balance=> {
                 if ( current_balance == info.my_balance ){
                     console.log("Equal");
